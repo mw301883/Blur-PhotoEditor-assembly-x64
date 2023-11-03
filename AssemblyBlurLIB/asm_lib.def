@@ -1,0 +1,2 @@
+LIBRARY AssemblyBlurLIB
+EXPORTS Calc

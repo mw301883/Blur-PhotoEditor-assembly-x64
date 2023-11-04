@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Projekty\Photo-Editor-Blur\PhotoEditor-Blur-ASMx64-CPP\x64\Debug\AssemblyBlurLIB.dll</FullPath>
+      <FullPath>C:\Projekty\Photo-Editor-Blur\PhotoEditor-Blur-CPP-ASMx64\x64\Debug\AssemblyBlurLIB.dll</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

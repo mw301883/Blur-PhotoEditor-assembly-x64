@@ -15,6 +15,9 @@ namespace PhotoEditorBlurCPPASMx64 {
 	public ref class userGUI : public System::Windows::Forms::Form
 	{
 	public:
+
+		Bitmap^ bmpLoadedIMG;
+
 		userGUI(void)
 		{
 			InitializeComponent();
@@ -49,7 +52,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 	private: System::Windows::Forms::NumericUpDown^ numericUpDown1;
 	private: System::Windows::Forms::Button^ process;
 	private: System::Windows::Forms::PictureBox^ pictureBox1;
-	private: System::Windows::Forms::PictureBox^ pictureBox2;
+
 	private: System::Windows::Forms::Label^ label3;
 	private: System::Windows::Forms::Label^ label4;
 	private: System::Windows::Forms::Label^ label5;
@@ -58,6 +61,12 @@ namespace PhotoEditorBlurCPPASMx64 {
 	private: System::Windows::Forms::ToolStripMenuItem^ importImageToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^ clearToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^ exitToolStripMenuItem;
+	private: System::Windows::Forms::OpenFileDialog^ openFileDialog1;
+
+
+
+
+
 
 
 	private:
@@ -87,7 +96,6 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->numericUpDown1 = (gcnew System::Windows::Forms::NumericUpDown());
 			this->process = (gcnew System::Windows::Forms::Button());
 			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
-			this->pictureBox2 = (gcnew System::Windows::Forms::PictureBox());
 			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->label4 = (gcnew System::Windows::Forms::Label());
 			this->label5 = (gcnew System::Windows::Forms::Label());
@@ -96,9 +104,9 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->importImageToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->clearToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->exitToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->openFileDialog1 = (gcnew System::Windows::Forms::OpenFileDialog());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->numericUpDown1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox2))->BeginInit();
 			this->menuStrip1->SuspendLayout();
 			this->SuspendLayout();
 			// 
@@ -217,17 +225,11 @@ namespace PhotoEditorBlurCPPASMx64 {
 			// 
 			this->pictureBox1->Location = System::Drawing::Point(53, 40);
 			this->pictureBox1->Name = L"pictureBox1";
-			this->pictureBox1->Size = System::Drawing::Size(513, 489);
+			this->pictureBox1->Size = System::Drawing::Size(1072, 489);
+			this->pictureBox1->SizeMode = System::Windows::Forms::PictureBoxSizeMode::Zoom;
 			this->pictureBox1->TabIndex = 13;
 			this->pictureBox1->TabStop = false;
-			// 
-			// pictureBox2
-			// 
-			this->pictureBox2->Location = System::Drawing::Point(619, 40);
-			this->pictureBox2->Name = L"pictureBox2";
-			this->pictureBox2->Size = System::Drawing::Size(513, 489);
-			this->pictureBox2->TabIndex = 14;
-			this->pictureBox2->TabStop = false;
+			this->pictureBox1->Click += gcnew System::EventHandler(this, &userGUI::pictureBox1_Click);
 			// 
 			// label3
 			// 
@@ -273,7 +275,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->menuToolStripMenuItem });
 			this->menuStrip1->Location = System::Drawing::Point(0, 0);
 			this->menuStrip1->Name = L"menuStrip1";
-			this->menuStrip1->Size = System::Drawing::Size(1181, 30);
+			this->menuStrip1->Size = System::Drawing::Size(1181, 28);
 			this->menuStrip1->TabIndex = 18;
 			this->menuStrip1->Text = L"menuStrip1";
 			// 
@@ -290,21 +292,28 @@ namespace PhotoEditorBlurCPPASMx64 {
 			// importImageToolStripMenuItem
 			// 
 			this->importImageToolStripMenuItem->Name = L"importImageToolStripMenuItem";
-			this->importImageToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->importImageToolStripMenuItem->Size = System::Drawing::Size(183, 26);
 			this->importImageToolStripMenuItem->Text = L"Import image";
 			this->importImageToolStripMenuItem->Click += gcnew System::EventHandler(this, &userGUI::importImageToolStripMenuItem_Click);
 			// 
 			// clearToolStripMenuItem
 			// 
 			this->clearToolStripMenuItem->Name = L"clearToolStripMenuItem";
-			this->clearToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->clearToolStripMenuItem->Size = System::Drawing::Size(183, 26);
 			this->clearToolStripMenuItem->Text = L"Clear";
+			this->clearToolStripMenuItem->Click += gcnew System::EventHandler(this, &userGUI::clearToolStripMenuItem_Click);
 			// 
 			// exitToolStripMenuItem
 			// 
 			this->exitToolStripMenuItem->Name = L"exitToolStripMenuItem";
-			this->exitToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->exitToolStripMenuItem->Size = System::Drawing::Size(183, 26);
 			this->exitToolStripMenuItem->Text = L"Exit";
+			this->exitToolStripMenuItem->Click += gcnew System::EventHandler(this, &userGUI::exitToolStripMenuItem_Click);
+			// 
+			// openFileDialog1
+			// 
+			this->openFileDialog1->FileName = L"openFileDialog1";
+			this->openFileDialog1->Filter = L"Jpeg|*.jpg|Bitmap|*.bmp|All files|*.*";
 			// 
 			// userGUI
 			// 
@@ -315,7 +324,6 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->Controls->Add(this->label5);
 			this->Controls->Add(this->label4);
 			this->Controls->Add(this->label3);
-			this->Controls->Add(this->pictureBox2);
 			this->Controls->Add(this->pictureBox1);
 			this->Controls->Add(this->process);
 			this->Controls->Add(this->numericUpDown1);
@@ -340,7 +348,6 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->Load += gcnew System::EventHandler(this, &userGUI::userGUI_Load);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->numericUpDown1))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->EndInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox2))->EndInit();
 			this->menuStrip1->ResumeLayout(false);
 			this->menuStrip1->PerformLayout();
 			this->ResumeLayout(false);
@@ -352,9 +359,26 @@ namespace PhotoEditorBlurCPPASMx64 {
 	}
 	private: System::Void label1_Click(System::Object^ sender, System::EventArgs^ e) {
 	}
-private: System::Void label3_Click(System::Object^ sender, System::EventArgs^ e) {
-}
-private: System::Void importImageToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
-}
+	private: System::Void label3_Click(System::Object^ sender, System::EventArgs^ e) {
+	}
+	private: System::Void importImageToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+		if (openFileDialog1->ShowDialog(nullptr) == System::Windows::Forms::DialogResult::OK) {
+			try {
+				bmpLoadedIMG = (Bitmap^)Image::FromFile(openFileDialog1->FileName);
+				pictureBox1->Image = bmpLoadedIMG;
+			}
+			catch(...){
+				MessageBox::Show("This file could not be open.");
+			}
+		}
+	}
+	private: System::Void pictureBox1_Click(System::Object^ sender, System::EventArgs^ e) {
+	}
+	private: System::Void exitToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+		Application::Exit();
+	}
+	private: System::Void clearToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+		pictureBox1->Image = nullptr;
+	}
 };
 }

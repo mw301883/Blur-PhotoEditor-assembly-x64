@@ -19,3 +19,5 @@ Class PhotoEditorBlurCPPASMx64.userGUI: AutoLayout, AnsiClass, Class, Public, Be
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Fields:
     System.Drawing.Bitmap bmpLoadedIMG : Public
+    System.Drawing.Bitmap bmpCopyProcessedIMG : Public
+    Int32 blur_rate : Public

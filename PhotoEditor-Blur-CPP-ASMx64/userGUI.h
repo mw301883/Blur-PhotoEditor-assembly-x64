@@ -22,21 +22,27 @@ namespace PhotoEditorBlurCPPASMx64 {
 		Bitmap^ bmpLoadedIMG;
 		Bitmap^ bmpCopyProcessedIMG;
 
-		int blur_rate;
+		int blur_rate, weight_one, weight_two, weight_three, weight_four, weight_five, weight_six, weight_seven,
+			weight_eight, weight_nine;
 
 		userGUI(void)
 		{
 			InitializeComponent();
 			this->blur_rate = 0;
+			this->weight_one = 1;
+			this->weight_two = 1;
+			this->weight_three = 1;
+			this->weight_four = 1;
+			this->weight_five = 1;
+			this->weight_six = 1;
+			this->weight_seven = 1;
+			this->weight_eight = 1;
+			this->weight_nine = 1;
 		}
 
-	protected:
-		/// <summary>
-		/// Wyczyœæ wszystkie u¿ywane zasoby.
-		/// </summary>
-		~userGUI()
+	protected:		~userGUI()
 		{
-			if (components)
+
 			{
 				delete components;
 			}
@@ -129,66 +135,75 @@ namespace PhotoEditorBlurCPPASMx64 {
 			// 
 			// textBox1
 			// 
-			this->textBox1->Location = System::Drawing::Point(79, 639);
+			this->textBox1->Location = System::Drawing::Point(144, 637);
 			this->textBox1->Name = L"textBox1";
 			this->textBox1->Size = System::Drawing::Size(34, 22);
 			this->textBox1->TabIndex = 0;
+			this->textBox1->TextChanged += gcnew System::EventHandler(this, &userGUI::textBox1_TextChanged);
 			// 
 			// textBox2
 			// 
-			this->textBox2->Location = System::Drawing::Point(119, 639);
+			this->textBox2->Location = System::Drawing::Point(184, 637);
 			this->textBox2->Name = L"textBox2";
 			this->textBox2->Size = System::Drawing::Size(34, 22);
 			this->textBox2->TabIndex = 1;
+			this->textBox2->TextChanged += gcnew System::EventHandler(this, &userGUI::textBox2_TextChanged);
 			// 
 			// textBox3
 			// 
-			this->textBox3->Location = System::Drawing::Point(159, 639);
+			this->textBox3->Location = System::Drawing::Point(224, 637);
 			this->textBox3->Name = L"textBox3";
 			this->textBox3->Size = System::Drawing::Size(34, 22);
 			this->textBox3->TabIndex = 2;
+			this->textBox3->TextChanged += gcnew System::EventHandler(this, &userGUI::textBox3_TextChanged);
 			// 
 			// textBox4
 			// 
-			this->textBox4->Location = System::Drawing::Point(79, 667);
+			this->textBox4->Location = System::Drawing::Point(144, 665);
 			this->textBox4->Name = L"textBox4";
 			this->textBox4->Size = System::Drawing::Size(34, 22);
 			this->textBox4->TabIndex = 3;
+			this->textBox4->TextChanged += gcnew System::EventHandler(this, &userGUI::textBox4_TextChanged);
 			// 
 			// textBox5
 			// 
-			this->textBox5->Location = System::Drawing::Point(119, 667);
+			this->textBox5->Location = System::Drawing::Point(184, 665);
 			this->textBox5->Name = L"textBox5";
 			this->textBox5->Size = System::Drawing::Size(34, 22);
 			this->textBox5->TabIndex = 4;
+			this->textBox5->TextChanged += gcnew System::EventHandler(this, &userGUI::textBox5_TextChanged);
 			// 
 			// textBox6
 			// 
-			this->textBox6->Location = System::Drawing::Point(159, 667);
+			this->textBox6->Location = System::Drawing::Point(224, 665);
 			this->textBox6->Name = L"textBox6";
 			this->textBox6->Size = System::Drawing::Size(34, 22);
 			this->textBox6->TabIndex = 5;
+			this->textBox6->TextChanged += gcnew System::EventHandler(this, &userGUI::textBox6_TextChanged);
 			// 
 			// textBox7
 			// 
-			this->textBox7->Location = System::Drawing::Point(159, 695);
+			this->textBox7->Location = System::Drawing::Point(224, 693);
 			this->textBox7->Name = L"textBox7";
 			this->textBox7->Size = System::Drawing::Size(34, 22);
 			this->textBox7->TabIndex = 8;
+			this->textBox7->TextChanged += gcnew System::EventHandler(this, &userGUI::textBox7_TextChanged);
 			// 
 			// textBox8
 			// 
-			this->textBox8->Location = System::Drawing::Point(119, 695);
+			this->textBox8->Location = System::Drawing::Point(184, 693);
 			this->textBox8->Name = L"textBox8";
 			this->textBox8->Size = System::Drawing::Size(34, 22);
 			this->textBox8->TabIndex = 7;
+			this->textBox8->TextChanged += gcnew System::EventHandler(this, &userGUI::textBox8_TextChanged);
 			// 
 			// textBox9
 			// 
-			this->textBox9->Location = System::Drawing::Point(79, 695);
+			this->textBox9->Location = System::Drawing::Point(144, 693);
 			this->textBox9->Name = L"textBox9";
 			this->textBox9->Size = System::Drawing::Size(34, 22);
 			this->textBox9->TabIndex = 6;
+			this->textBox9->TextChanged += gcnew System::EventHandler(this, &userGUI::textBox9_TextChanged);
 			// 
 			// labelSetAVG
 			// 
@@ -198,9 +213,9 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->labelSetAVG->ForeColor = System::Drawing::SystemColors::HotTrack;
 			this->labelSetAVG->Location = System::Drawing::Point(31, 601);
 			this->labelSetAVG->Name = L"labelSetAVG";
-			this->labelSetAVG->Size = System::Drawing::Size(303, 21);
+			this->labelSetAVG->Size = System::Drawing::Size(351, 21);
 			this->labelSetAVG->TabIndex = 9;
-			this->labelSetAVG->Text = L"Set values of weighted average  :";
+			this->labelSetAVG->Text = L"Set values of weighted pixel average  :";
 			this->labelSetAVG->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			this->labelSetAVG->Click += gcnew System::EventHandler(this, &userGUI::label1_Click);
 			// 
@@ -448,6 +463,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 		labelCppTime->Text = "C++: ";
 		labelAssemblyTime->Text = "Assembly x64: ";
 	}
+
 	private: System::Void process_Click(System::Object^ sender, System::EventArgs^ e) {
 		//TODO main app logic here
 
@@ -479,6 +495,69 @@ namespace PhotoEditorBlurCPPASMx64 {
 	}
 	private: System::Void radioButton3_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
 		this->blur_rate = 150;
+	}
+	private: System::Void textBox1_TextChanged(System::Object^ sender, System::EventArgs^ e) {
+		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_one)) {
+		}
+		else {
+			this->weight_one = 1;
+		}
+	}
+	private: System::Void textBox2_TextChanged(System::Object^ sender, System::EventArgs^ e) {
+		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_two)) {
+		}
+		else {
+			this->weight_two = 1;
+		}
+	}
+	private: System::Void textBox3_TextChanged(System::Object^ sender, System::EventArgs^ e) {
+		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_three)) {
+		}
+		else {
+			this->weight_three = 1;
+		}
+	}
+	private: System::Void textBox4_TextChanged(System::Object^ sender, System::EventArgs^ e) {
+		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_four)) {
+		}
+		else {
+			this->weight_four = 1;
+		}
+	}
+	private: System::Void textBox5_TextChanged(System::Object^ sender, System::EventArgs^ e) {
+		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_five)) {
+		}
+		else {
+			this->weight_five = 1;
+		}
+	}
+	private: System::Void textBox6_TextChanged(System::Object^ sender, System::EventArgs^ e) {
+		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_six)) {
+		}
+		else {
+			this->weight_six = 1;
+		}
+	}
+	private: System::Void textBox9_TextChanged(System::Object^ sender, System::EventArgs^ e) {
+		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_seven)) {
+		}
+		else {
+			this->weight_seven = 1;
+		}
+	}
+	private: System::Void textBox8_TextChanged(System::Object^ sender, System::EventArgs^ e) {
+		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_eight)) {
+		}
+		else {
+			this->weight_eight = 1;
+		}
+	}
+	private: System::Void textBox7_TextChanged(System::Object^ sender, System::EventArgs^ e) {
+		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_nine)) {
+		}
+		else {
+			this->weight_nine = 1;
+		}
 	}
 };
 }

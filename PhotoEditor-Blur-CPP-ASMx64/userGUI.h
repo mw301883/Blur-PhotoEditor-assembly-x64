@@ -25,7 +25,6 @@ namespace PhotoEditorBlurCPPASMx64 {
 	public:
 
 		Bitmap^ bmpLoadedIMG;
-		Bitmap^ bmpCopyProcessedIMG;
 
 		int blur_rate, weight_one, weight_two, weight_three, weight_four, weight_five, weight_six, weight_seven,
 			weight_eight, weight_nine;
@@ -465,34 +464,31 @@ namespace PhotoEditorBlurCPPASMx64 {
 	}
 	private: System::Void clearToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 		pictureBox1->Image = this->bmpLoadedIMG;
-		this->bmpCopyProcessedIMG = this->bmpLoadedIMG;
 		labelCppTime->Text = "C++: ";
 		labelAssemblyTime->Text = "Assembly x64: ";
 	}
 
 	private: System::Void process_Click(System::Object^ sender, System::EventArgs^ e) {
 		//TODO main app logic here
-		this->bmpCopyProcessedIMG = this->bmpLoadedIMG;
-
+		Bitmap^ bmpCopyProcessedIMG = dynamic_cast<Bitmap^>(this->bmpLoadedIMG->Clone());
 
 		std::chrono::steady_clock::time_point cpp_time_start = std::chrono::high_resolution_clock::now();
 		//TODO C++ dll
-		
+
 		// Uzyskaj dane obiektu BitmapData do modyfikacji pikseli
-		Rectangle rect = Rectangle(0, 0, this->bmpCopyProcessedIMG->Width, this->bmpCopyProcessedIMG->Height);
-		System::Drawing::Imaging::BitmapData^ bmpData = this->bmpCopyProcessedIMG->LockBits(rect, System::Drawing::Imaging::ImageLockMode::ReadWrite, this->bmpCopyProcessedIMG->PixelFormat);
+		Rectangle rect = Rectangle(0, 0, bmpCopyProcessedIMG->Width, bmpCopyProcessedIMG->Height);
+		System::Drawing::Imaging::BitmapData^ bmpData = bmpCopyProcessedIMG->LockBits(rect, System::Drawing::Imaging::ImageLockMode::ReadWrite, bmpCopyProcessedIMG->PixelFormat);
 
 		IntPtr ptr = IntPtr(bmpData->Scan0.ToPointer());
-		//std::vector<IntPtr> avg_matrix(9, ptr);
 		List<IntPtr>^ avg_matrix = gcnew List<IntPtr>(9);
 		for (int i = 0; i < 9; ++i) {
 			avg_matrix->Add(ptr);
 		}
 		
 		for (int i = 0; i < this->blur_rate; ++i) {
-			for (int y = 0; y < bmpData->Height - 1; y++)
+			for (int y = 1; y < bmpData->Height - 1; y++)
 			{
-				for (int x = 0; x < bmpData->Width - 1; x++)
+				for (int x = 1; x < bmpData->Width - 1; x++)
 				{
 					//Wype³nienie macierzy pikseli do obliczenia œredniej
 					avg_matrix[0] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + (x - 1) * 3);
@@ -505,7 +501,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 					avg_matrix[7] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + x * 3);
 					avg_matrix[8] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + (x + 1) * 3);
 
-					// Modyfikacja wartoœci piksela (zmiana na czerwony)
+					// Modyfikacja wartoœci piksela
 					Byte* pixel1 = reinterpret_cast<Byte*>(avg_matrix[0].ToPointer());
 					Byte* pixel2 = reinterpret_cast<Byte*>(avg_matrix[1].ToPointer());
 					Byte* pixel3 = reinterpret_cast<Byte*>(avg_matrix[2].ToPointer());
@@ -531,17 +527,13 @@ namespace PhotoEditorBlurCPPASMx64 {
 						this->weight_two, this->weight_three, this->weight_four,
 						this->weight_five, this->weight_six, this->weight_seven,
 						this->weight_eight, this->weight_nine);
-					/*int blue = pixel[0];
-					int green = pixel[1];
-					int red = pixel[2];*/
 				}
 			}
 		}
 		// Odblokuj obiekt BitmapData po modyfikacji
-		this->bmpCopyProcessedIMG->UnlockBits(bmpData);
+		bmpCopyProcessedIMG->UnlockBits(bmpData);
 		//Zapis wyniku i wyœwietlenie
-		this->pictureBox1->Image = this->bmpCopyProcessedIMG;
-		this->bmpCopyProcessedIMG = this->bmpLoadedIMG;
+		this->pictureBox1->Image = bmpCopyProcessedIMG;
 		
 		std::chrono::steady_clock::time_point cpp_time_end = std::chrono::high_resolution_clock::now();
 		auto cpp_time = cpp_time_end - cpp_time_start;
@@ -572,74 +564,56 @@ namespace PhotoEditorBlurCPPASMx64 {
 		labelAssemblyTime->Text = "Assembly x64: " + assembly_time / std::chrono::milliseconds(1) + " ms";
 	}
 	private: System::Void radioButton1_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
-		this->blur_rate = 25;
+		this->blur_rate = 10;
 	}
 	private: System::Void radioButton2_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
-		this->blur_rate = 50;
+		this->blur_rate = 25;
 	}
 	private: System::Void radioButton3_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
-		this->blur_rate = 75;
+		this->blur_rate = 50;
 	}
 	private: System::Void textBox1_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_one)) {
-		}
-		else {
+		if (!Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_one)) {
 			this->weight_one = 1;
 		}
 	}
 	private: System::Void textBox2_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_two)) {
-		}
-		else {
+		if (!Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_two)) {
 			this->weight_two = 1;
 		}
 	}
 	private: System::Void textBox3_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_three)) {
-		}
-		else {
+		if (!Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_three)) {
 			this->weight_three = 1;
 		}
 	}
 	private: System::Void textBox4_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_four)) {
-		}
-		else {
+		if (!Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_four)) {
 			this->weight_four = 1;
 		}
 	}
 	private: System::Void textBox5_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_five)) {
-		}
-		else {
+		if (!Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_five)) {
 			this->weight_five = 1;
 		}
 	}
 	private: System::Void textBox6_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_six)) {
-		}
-		else {
+		if (!Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_six)) {
 			this->weight_six = 1;
 		}
 	}
 	private: System::Void textBox9_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_seven)) {
-		}
-		else {
+		if (!Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_seven)) {
 			this->weight_seven = 1;
 		}
 	}
 	private: System::Void textBox8_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_eight)) {
-		}
-		else {
+		if (!Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_eight)) {
 			this->weight_eight = 1;
 		}
 	}
 	private: System::Void textBox7_TextChanged(System::Object^ sender, System::EventArgs^ e) {
-		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_nine)) {
-		}
-		else {
+		if (!Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_nine)) {
 			this->weight_nine = 1;
 		}
 	}

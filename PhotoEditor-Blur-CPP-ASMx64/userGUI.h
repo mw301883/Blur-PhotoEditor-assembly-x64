@@ -2,6 +2,10 @@
 
 #include <chrono>
 #include <string>
+#include <vcclr.h>
+#include <vector>
+#include "cpp_lib.h"
+#include "asm_lib.h"
 
 namespace PhotoEditorBlurCPPASMx64 {
 
@@ -11,6 +15,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
+	using namespace System::Collections::Generic;
 
 	/// <summary>
 	/// Podsumowanie informacji o userGUI
@@ -459,19 +464,85 @@ namespace PhotoEditorBlurCPPASMx64 {
 		Application::Exit();
 	}
 	private: System::Void clearToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
-		pictureBox1->Image = nullptr;
+		pictureBox1->Image = this->bmpLoadedIMG;
+		this->bmpCopyProcessedIMG = this->bmpLoadedIMG;
 		labelCppTime->Text = "C++: ";
 		labelAssemblyTime->Text = "Assembly x64: ";
 	}
 
 	private: System::Void process_Click(System::Object^ sender, System::EventArgs^ e) {
 		//TODO main app logic here
+		this->bmpCopyProcessedIMG = this->bmpLoadedIMG;
+
 
 		std::chrono::steady_clock::time_point cpp_time_start = std::chrono::high_resolution_clock::now();
 		//TODO C++ dll
-		for (int i = 0; i < 40000000; ++i) {
+		
+		// Uzyskaj dane obiektu BitmapData do modyfikacji pikseli
+		Rectangle rect = Rectangle(0, 0, this->bmpCopyProcessedIMG->Width, this->bmpCopyProcessedIMG->Height);
+		System::Drawing::Imaging::BitmapData^ bmpData = this->bmpCopyProcessedIMG->LockBits(rect, System::Drawing::Imaging::ImageLockMode::ReadWrite, this->bmpCopyProcessedIMG->PixelFormat);
 
+		IntPtr ptr = IntPtr(bmpData->Scan0.ToPointer());
+		//std::vector<IntPtr> avg_matrix(9, ptr);
+		List<IntPtr>^ avg_matrix = gcnew List<IntPtr>(9);
+		for (int i = 0; i < 9; ++i) {
+			avg_matrix->Add(ptr);
 		}
+		
+		for (int i = 0; i < this->blur_rate; ++i) {
+			for (int y = 0; y < bmpData->Height - 1; y++)
+			{
+				for (int x = 0; x < bmpData->Width - 1; x++)
+				{
+					//Wype³nienie macierzy pikseli do obliczenia œredniej
+					avg_matrix[0] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + (x - 1) * 3);
+					avg_matrix[1] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + x * 3);
+					avg_matrix[2] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + (x + 1) * 3);
+					avg_matrix[3] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + (x - 1) * 3);
+					avg_matrix[4] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + x * 3);// Center
+					avg_matrix[5] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + (x + 1) * 3);
+					avg_matrix[6] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + (x - 1) * 3);
+					avg_matrix[7] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + x * 3);
+					avg_matrix[8] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + (x + 1) * 3);
+
+					// Modyfikacja wartoœci piksela (zmiana na czerwony)
+					Byte* pixel1 = reinterpret_cast<Byte*>(avg_matrix[0].ToPointer());
+					Byte* pixel2 = reinterpret_cast<Byte*>(avg_matrix[1].ToPointer());
+					Byte* pixel3 = reinterpret_cast<Byte*>(avg_matrix[2].ToPointer());
+					Byte* pixel4 = reinterpret_cast<Byte*>(avg_matrix[3].ToPointer());
+					Byte* pixel5 = reinterpret_cast<Byte*>(avg_matrix[4].ToPointer());//Center
+					Byte* pixel6 = reinterpret_cast<Byte*>(avg_matrix[5].ToPointer());
+					Byte* pixel7 = reinterpret_cast<Byte*>(avg_matrix[6].ToPointer());
+					Byte* pixel8 = reinterpret_cast<Byte*>(avg_matrix[7].ToPointer());
+					Byte* pixel9 = reinterpret_cast<Byte*>(avg_matrix[8].ToPointer());
+
+					pixel5[0] = wavg_calc_cpp(pixel1[0], pixel2[0], pixel3[0], pixel4[0], pixel5[0],
+						pixel6[0], pixel7[0], pixel8[0], pixel9[0], this->weight_one,
+						this->weight_two, this->weight_three, this->weight_four,
+						this->weight_five, this->weight_six, this->weight_seven,
+						this->weight_eight, this->weight_nine);
+					pixel5[1] = wavg_calc_cpp(pixel1[1], pixel2[1], pixel3[1], pixel4[1], pixel5[1],
+						pixel6[1], pixel7[1], pixel8[1], pixel9[1], this->weight_one,
+						this->weight_two, this->weight_three, this->weight_four,
+						this->weight_five, this->weight_six, this->weight_seven,
+						this->weight_eight, this->weight_nine);
+					pixel5[2] = wavg_calc_cpp(pixel1[2], pixel2[2], pixel3[2], pixel4[2], pixel5[2],
+						pixel6[2], pixel7[2], pixel8[2], pixel9[2], this->weight_one,
+						this->weight_two, this->weight_three, this->weight_four,
+						this->weight_five, this->weight_six, this->weight_seven,
+						this->weight_eight, this->weight_nine);
+					/*int blue = pixel[0];
+					int green = pixel[1];
+					int red = pixel[2];*/
+				}
+			}
+		}
+		// Odblokuj obiekt BitmapData po modyfikacji
+		this->bmpCopyProcessedIMG->UnlockBits(bmpData);
+		//Zapis wyniku i wyœwietlenie
+		this->pictureBox1->Image = this->bmpCopyProcessedIMG;
+		this->bmpCopyProcessedIMG = this->bmpLoadedIMG;
+		
 		std::chrono::steady_clock::time_point cpp_time_end = std::chrono::high_resolution_clock::now();
 		auto cpp_time = cpp_time_end - cpp_time_start;
 		
@@ -480,9 +551,22 @@ namespace PhotoEditorBlurCPPASMx64 {
 
 		std::chrono::steady_clock::time_point assembly_time_start = std::chrono::high_resolution_clock::now();
 		//TODO assembly dll
-		for (int i = 0; i < 50000000; ++i) {
+		//for (int y = 0; y < bmpData->Height; y++)
+		//{
+		//	for (int x = 0; x < bmpData->Width; x++)
+		//	{
+		//		// Uzyskaj wskaŸnik na piksel
+		//		IntPtr ptr = IntPtr(bmpData->Scan0.ToPointer());
+		//		ptr = IntPtr(ptr.ToInt64() + y * bmpData->Stride + x * 3); // Format RGB (3 bajty na piksel)
 
-		}
+		//		// Modyfikacja wartoœci piksela (zmiana na czerwony)
+		//		Byte* pixel = reinterpret_cast<Byte*>(ptr.ToPointer());
+		//		pixel[0] = 0; // Blue
+		//		pixel[1] = 0; // Green
+		//		pixel[2] = 255; // Red
+		//	}
+		//}
+
 		std::chrono::steady_clock::time_point assembly_time_end = std::chrono::high_resolution_clock::now();
 		auto assembly_time = assembly_time_end - assembly_time_start;
 		labelAssemblyTime->Text = "Assembly x64: " + assembly_time / std::chrono::milliseconds(1) + " ms";
@@ -491,10 +575,10 @@ namespace PhotoEditorBlurCPPASMx64 {
 		this->blur_rate = 25;
 	}
 	private: System::Void radioButton2_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
-		this->blur_rate = 75;
+		this->blur_rate = 50;
 	}
 	private: System::Void radioButton3_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
-		this->blur_rate = 150;
+		this->blur_rate = 75;
 	}
 	private: System::Void textBox1_TextChanged(System::Object^ sender, System::EventArgs^ e) {
 		if (Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_one)) {

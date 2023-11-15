@@ -29,3 +29,4 @@ Class PhotoEditorBlurCPPASMx64.userGUI: AutoLayout, AnsiClass, Class, Public, Be
     Int32 weight_seven : Public
     Int32 weight_eight : Public
     Int32 weight_nine : Public
+    Boolean dll_lib_choice : Public

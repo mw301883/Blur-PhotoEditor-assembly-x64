@@ -29,10 +29,26 @@ namespace PhotoEditorBlurCPPASMx64 {
 		int blur_rate, weight_one, weight_two, weight_three, weight_four, weight_five, weight_six, weight_seven,
 			weight_eight, weight_nine;
 
+		bool dll_lib_choice;
+
+	private: System::Windows::Forms::ToolStripMenuItem^ setDLLBlurLibraryToolStripMenuItem;
+	private: System::Windows::Forms::ToolStripMenuItem^ assemblyX64ToolStripMenuItem;
+	private: System::Windows::Forms::ProgressBar^ progressBar;
+	public:
+	private: System::Windows::Forms::ToolStripMenuItem^ cToolStripMenuItem;
+
+	public:
+
+
+
+	public:
+
+	public:
+
 		userGUI(void)
 		{
 			InitializeComponent();
-			this->blur_rate = 0;
+			this->blur_rate = 10;
 			this->weight_one = 1;
 			this->weight_two = 1;
 			this->weight_three = 1;
@@ -42,6 +58,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->weight_seven = 1;
 			this->weight_eight = 1;
 			this->weight_nine = 1;
+			this->dll_lib_choice = true;
 		}
 
 	protected:		~userGUI()
@@ -126,12 +143,16 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->menuStrip1 = (gcnew System::Windows::Forms::MenuStrip());
 			this->menuToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->importImageToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->setDLLBlurLibraryToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->cToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->assemblyX64ToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->clearToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->exitToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->openFileDialog1 = (gcnew System::Windows::Forms::OpenFileDialog());
 			this->radioButton1 = (gcnew System::Windows::Forms::RadioButton());
 			this->radioButton2 = (gcnew System::Windows::Forms::RadioButton());
 			this->radioButton3 = (gcnew System::Windows::Forms::RadioButton());
+			this->progressBar = (gcnew System::Windows::Forms::ProgressBar());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->numericUpDown1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->menuStrip1->SuspendLayout();
@@ -260,6 +281,8 @@ namespace PhotoEditorBlurCPPASMx64 {
 			// 
 			// pictureBox1
 			// 
+			this->pictureBox1->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
+			this->pictureBox1->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
 			this->pictureBox1->Location = System::Drawing::Point(53, 40);
 			this->pictureBox1->Name = L"pictureBox1";
 			this->pictureBox1->Size = System::Drawing::Size(1171, 489);
@@ -318,9 +341,9 @@ namespace PhotoEditorBlurCPPASMx64 {
 			// 
 			// menuToolStripMenuItem
 			// 
-			this->menuToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(3) {
+			this->menuToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(4) {
 				this->importImageToolStripMenuItem,
-					this->clearToolStripMenuItem, this->exitToolStripMenuItem
+					this->setDLLBlurLibraryToolStripMenuItem, this->clearToolStripMenuItem, this->exitToolStripMenuItem
 			});
 			this->menuToolStripMenuItem->Name = L"menuToolStripMenuItem";
 			this->menuToolStripMenuItem->Size = System::Drawing::Size(60, 24);
@@ -329,21 +352,46 @@ namespace PhotoEditorBlurCPPASMx64 {
 			// importImageToolStripMenuItem
 			// 
 			this->importImageToolStripMenuItem->Name = L"importImageToolStripMenuItem";
-			this->importImageToolStripMenuItem->Size = System::Drawing::Size(183, 26);
+			this->importImageToolStripMenuItem->Size = System::Drawing::Size(221, 26);
 			this->importImageToolStripMenuItem->Text = L"Import image";
 			this->importImageToolStripMenuItem->Click += gcnew System::EventHandler(this, &userGUI::importImageToolStripMenuItem_Click);
+			// 
+			// setDLLBlurLibraryToolStripMenuItem
+			// 
+			this->setDLLBlurLibraryToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+				this->cToolStripMenuItem,
+					this->assemblyX64ToolStripMenuItem
+			});
+			this->setDLLBlurLibraryToolStripMenuItem->Name = L"setDLLBlurLibraryToolStripMenuItem";
+			this->setDLLBlurLibraryToolStripMenuItem->Size = System::Drawing::Size(221, 26);
+			this->setDLLBlurLibraryToolStripMenuItem->Text = L"Set DLL Blur Library";
+			this->setDLLBlurLibraryToolStripMenuItem->Click += gcnew System::EventHandler(this, &userGUI::setDLLBlurLibraryToolStripMenuItem_Click);
+			// 
+			// cToolStripMenuItem
+			// 
+			this->cToolStripMenuItem->Name = L"cToolStripMenuItem";
+			this->cToolStripMenuItem->Size = System::Drawing::Size(182, 26);
+			this->cToolStripMenuItem->Text = L"C++";
+			this->cToolStripMenuItem->Click += gcnew System::EventHandler(this, &userGUI::cToolStripMenuItem_Click);
+			// 
+			// assemblyX64ToolStripMenuItem
+			// 
+			this->assemblyX64ToolStripMenuItem->Name = L"assemblyX64ToolStripMenuItem";
+			this->assemblyX64ToolStripMenuItem->Size = System::Drawing::Size(182, 26);
+			this->assemblyX64ToolStripMenuItem->Text = L"Assembly x64";
+			this->assemblyX64ToolStripMenuItem->Click += gcnew System::EventHandler(this, &userGUI::assemblyX64ToolStripMenuItem_Click);
 			// 
 			// clearToolStripMenuItem
 			// 
 			this->clearToolStripMenuItem->Name = L"clearToolStripMenuItem";
-			this->clearToolStripMenuItem->Size = System::Drawing::Size(183, 26);
+			this->clearToolStripMenuItem->Size = System::Drawing::Size(221, 26);
 			this->clearToolStripMenuItem->Text = L"Clear";
 			this->clearToolStripMenuItem->Click += gcnew System::EventHandler(this, &userGUI::clearToolStripMenuItem_Click);
 			// 
 			// exitToolStripMenuItem
 			// 
 			this->exitToolStripMenuItem->Name = L"exitToolStripMenuItem";
-			this->exitToolStripMenuItem->Size = System::Drawing::Size(183, 26);
+			this->exitToolStripMenuItem->Size = System::Drawing::Size(221, 26);
 			this->exitToolStripMenuItem->Text = L"Exit";
 			this->exitToolStripMenuItem->Click += gcnew System::EventHandler(this, &userGUI::exitToolStripMenuItem_Click);
 			// 
@@ -355,6 +403,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 			// radioButton1
 			// 
 			this->radioButton1->AutoSize = true;
+			this->radioButton1->Checked = true;
 			this->radioButton1->Font = (gcnew System::Drawing::Font(L"Arial", 13.8F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(238)));
 			this->radioButton1->ForeColor = System::Drawing::SystemColors::HotTrack;
@@ -377,7 +426,6 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->radioButton2->Name = L"radioButton2";
 			this->radioButton2->Size = System::Drawing::Size(174, 31);
 			this->radioButton2->TabIndex = 20;
-			this->radioButton2->TabStop = true;
 			this->radioButton2->Text = L"medium Blur";
 			this->radioButton2->UseVisualStyleBackColor = true;
 			this->radioButton2->CheckedChanged += gcnew System::EventHandler(this, &userGUI::radioButton2_CheckedChanged);
@@ -392,10 +440,18 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->radioButton3->Name = L"radioButton3";
 			this->radioButton3->Size = System::Drawing::Size(138, 31);
 			this->radioButton3->TabIndex = 21;
-			this->radioButton3->TabStop = true;
 			this->radioButton3->Text = L"high Blur";
 			this->radioButton3->UseVisualStyleBackColor = true;
 			this->radioButton3->CheckedChanged += gcnew System::EventHandler(this, &userGUI::radioButton3_CheckedChanged);
+			// 
+			// progressBar
+			// 
+			this->progressBar->Location = System::Drawing::Point(423, 240);
+			this->progressBar->Name = L"progressBar";
+			this->progressBar->Size = System::Drawing::Size(438, 86);
+			this->progressBar->Step = 1;
+			this->progressBar->TabIndex = 22;
+			this->progressBar->Visible = false;
 			// 
 			// userGUI
 			// 
@@ -403,6 +459,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->BackColor = System::Drawing::SystemColors::ActiveCaption;
 			this->ClientSize = System::Drawing::Size(1281, 732);
+			this->Controls->Add(this->progressBar);
 			this->Controls->Add(this->radioButton3);
 			this->Controls->Add(this->radioButton2);
 			this->Controls->Add(this->radioButton1);
@@ -425,6 +482,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->Controls->Add(this->textBox1);
 			this->Controls->Add(this->menuStrip1);
 			this->ForeColor = System::Drawing::SystemColors::ControlText;
+			this->KeyPreview = true;
 			this->MainMenuStrip = this->menuStrip1;
 			this->MaximumSize = System::Drawing::Size(1299, 779);
 			this->MinimumSize = System::Drawing::Size(1299, 779);
@@ -467,14 +525,8 @@ namespace PhotoEditorBlurCPPASMx64 {
 		labelCppTime->Text = "C++: ";
 		labelAssemblyTime->Text = "Assembly x64: ";
 	}
-
-	private: System::Void process_Click(System::Object^ sender, System::EventArgs^ e) {
-		//TODO main app logic here
+	private: void cpp_blur_algorithm() {
 		Bitmap^ bmpCopyProcessedIMG = dynamic_cast<Bitmap^>(this->bmpLoadedIMG->Clone());
-
-		std::chrono::steady_clock::time_point cpp_time_start = std::chrono::high_resolution_clock::now();
-		//TODO C++ dll
-
 		// Uzyskaj dane obiektu BitmapData do modyfikacji pikseli
 		Rectangle rect = Rectangle(0, 0, bmpCopyProcessedIMG->Width, bmpCopyProcessedIMG->Height);
 		System::Drawing::Imaging::BitmapData^ bmpData = bmpCopyProcessedIMG->LockBits(rect, System::Drawing::Imaging::ImageLockMode::ReadWrite, bmpCopyProcessedIMG->PixelFormat);
@@ -484,7 +536,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 		for (int i = 0; i < 9; ++i) {
 			avg_matrix->Add(ptr);
 		}
-		
+
 		for (int i = 0; i < this->blur_rate; ++i) {
 			for (int y = 1; y < bmpData->Height - 1; y++)
 			{
@@ -529,48 +581,55 @@ namespace PhotoEditorBlurCPPASMx64 {
 						this->weight_eight, this->weight_nine);
 				}
 			}
+			this->progressBar->Value = i;
 		}
 		// Odblokuj obiekt BitmapData po modyfikacji
 		bmpCopyProcessedIMG->UnlockBits(bmpData);
 		//Zapis wyniku i wyœwietlenie
 		this->pictureBox1->Image = bmpCopyProcessedIMG;
-		
-		std::chrono::steady_clock::time_point cpp_time_end = std::chrono::high_resolution_clock::now();
-		auto cpp_time = cpp_time_end - cpp_time_start;
-		
-		labelCppTime->Text = "C++: " + cpp_time / std::chrono::milliseconds(1) + " ms";
-		
+	}
+	private: void assembly_blur_algorithm() {
 
-		std::chrono::steady_clock::time_point assembly_time_start = std::chrono::high_resolution_clock::now();
-		//TODO assembly dll
-		//for (int y = 0; y < bmpData->Height; y++)
-		//{
-		//	for (int x = 0; x < bmpData->Width; x++)
-		//	{
-		//		// Uzyskaj wskaŸnik na piksel
-		//		IntPtr ptr = IntPtr(bmpData->Scan0.ToPointer());
-		//		ptr = IntPtr(ptr.ToInt64() + y * bmpData->Stride + x * 3); // Format RGB (3 bajty na piksel)
+	}
+	private: System::Void process_Click(System::Object^ sender, System::EventArgs^ e) {
+		if (this->bmpLoadedIMG == nullptr) {
+			return;
+		}
+		this->progressBar->Visible = true;
+		//TODO main app logic here
+		if (this->dll_lib_choice) {
+			std::chrono::steady_clock::time_point cpp_time_start = std::chrono::high_resolution_clock::now();
+			//TODO C++ dll
+			cpp_blur_algorithm();
 
-		//		// Modyfikacja wartoœci piksela (zmiana na czerwony)
-		//		Byte* pixel = reinterpret_cast<Byte*>(ptr.ToPointer());
-		//		pixel[0] = 0; // Blue
-		//		pixel[1] = 0; // Green
-		//		pixel[2] = 255; // Red
-		//	}
-		//}
+			std::chrono::steady_clock::time_point cpp_time_end = std::chrono::high_resolution_clock::now();
+			auto cpp_time = cpp_time_end - cpp_time_start;
 
-		std::chrono::steady_clock::time_point assembly_time_end = std::chrono::high_resolution_clock::now();
-		auto assembly_time = assembly_time_end - assembly_time_start;
-		labelAssemblyTime->Text = "Assembly x64: " + assembly_time / std::chrono::milliseconds(1) + " ms";
+			labelCppTime->Text = "C++: " + cpp_time / std::chrono::milliseconds(1) + " ms";
+		}
+		else {
+			std::chrono::steady_clock::time_point assembly_time_start = std::chrono::high_resolution_clock::now();
+			//TODO assembly dll
+			assembly_blur_algorithm();
+
+			std::chrono::steady_clock::time_point assembly_time_end = std::chrono::high_resolution_clock::now();
+			auto assembly_time = assembly_time_end - assembly_time_start;
+			labelAssemblyTime->Text = "Assembly x64: " + assembly_time / std::chrono::milliseconds(1) + " ms";
+		}
+		this->progressBar->Visible = false;
+		this->progressBar->Value = 0;
 	}
 	private: System::Void radioButton1_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
 		this->blur_rate = 10;
+		this->progressBar->Maximum = 10;
 	}
 	private: System::Void radioButton2_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
 		this->blur_rate = 25;
+		this->progressBar->Maximum = 25;
 	}
 	private: System::Void radioButton3_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
 		this->blur_rate = 50;
+		this->progressBar->Maximum = 50;
 	}
 	private: System::Void textBox1_TextChanged(System::Object^ sender, System::EventArgs^ e) {
 		if (!Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_one)) {
@@ -616,6 +675,14 @@ namespace PhotoEditorBlurCPPASMx64 {
 		if (!Int32::TryParse(dynamic_cast<TextBox^>(sender)->Text, this->weight_nine)) {
 			this->weight_nine = 1;
 		}
+	}
+	private: System::Void setDLLBlurLibraryToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+	}
+	private: System::Void cToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+		this->dll_lib_choice = true;
+	}
+	private: System::Void assemblyX64ToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+		this->dll_lib_choice = false;
 	}
 };
 }

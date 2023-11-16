@@ -102,14 +102,6 @@ namespace PhotoEditorBlurCPPASMx64 {
 	private: System::Windows::Forms::RadioButton^ radioButton2;
 	private: System::Windows::Forms::RadioButton^ radioButton3;
 
-
-
-
-
-
-
-
-
 	private:
 		/// <summary>
 		/// Wymagana zmienna projektanta.
@@ -589,7 +581,67 @@ namespace PhotoEditorBlurCPPASMx64 {
 		this->pictureBox1->Image = bmpCopyProcessedIMG;
 	}
 	private: void assembly_blur_algorithm() {
+		Bitmap^ bmpCopyProcessedIMG = dynamic_cast<Bitmap^>(this->bmpLoadedIMG->Clone());
+		// Uzyskaj dane obiektu BitmapData do modyfikacji pikseli
+		Rectangle rect = Rectangle(0, 0, bmpCopyProcessedIMG->Width, bmpCopyProcessedIMG->Height);
+		System::Drawing::Imaging::BitmapData^ bmpData = bmpCopyProcessedIMG->LockBits(rect, System::Drawing::Imaging::ImageLockMode::ReadWrite, bmpCopyProcessedIMG->PixelFormat);
 
+		IntPtr ptr = IntPtr(bmpData->Scan0.ToPointer());
+		List<IntPtr>^ avg_matrix = gcnew List<IntPtr>(9);
+		for (int i = 0; i < 9; ++i) {
+			avg_matrix->Add(ptr);
+		}
+
+		for (int i = 0; i < this->blur_rate; ++i) {
+			for (int y = 1; y < bmpData->Height - 1; y++)
+			{
+				for (int x = 1; x < bmpData->Width - 1; x++)
+				{
+					//Wype³nienie macierzy pikseli do obliczenia œredniej
+					avg_matrix[0] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + (x - 1) * 3);
+					avg_matrix[1] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + x * 3);
+					avg_matrix[2] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + (x + 1) * 3);
+					avg_matrix[3] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + (x - 1) * 3);
+					avg_matrix[4] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + x * 3);// Center
+					avg_matrix[5] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + (x + 1) * 3);
+					avg_matrix[6] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + (x - 1) * 3);
+					avg_matrix[7] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + x * 3);
+					avg_matrix[8] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + (x + 1) * 3);
+
+					// Modyfikacja wartoœci piksela
+					Byte* pixel1 = reinterpret_cast<Byte*>(avg_matrix[0].ToPointer());
+					Byte* pixel2 = reinterpret_cast<Byte*>(avg_matrix[1].ToPointer());
+					Byte* pixel3 = reinterpret_cast<Byte*>(avg_matrix[2].ToPointer());
+					Byte* pixel4 = reinterpret_cast<Byte*>(avg_matrix[3].ToPointer());
+					Byte* pixel5 = reinterpret_cast<Byte*>(avg_matrix[4].ToPointer());//Center
+					Byte* pixel6 = reinterpret_cast<Byte*>(avg_matrix[5].ToPointer());
+					Byte* pixel7 = reinterpret_cast<Byte*>(avg_matrix[6].ToPointer());
+					Byte* pixel8 = reinterpret_cast<Byte*>(avg_matrix[7].ToPointer());
+					Byte* pixel9 = reinterpret_cast<Byte*>(avg_matrix[8].ToPointer());
+
+					pixel5[0] = wavg_calc_asm(pixel1[0], pixel2[0], pixel3[0], pixel4[0], pixel5[0],
+						pixel6[0], pixel7[0], pixel8[0], pixel9[0], this->weight_one,
+						this->weight_two, this->weight_three, this->weight_four,
+						this->weight_five, this->weight_six, this->weight_seven,
+						this->weight_eight, this->weight_nine);
+					pixel5[1] = wavg_calc_asm(pixel1[1], pixel2[1], pixel3[1], pixel4[1], pixel5[1],
+						pixel6[1], pixel7[1], pixel8[1], pixel9[1], this->weight_one,
+						this->weight_two, this->weight_three, this->weight_four,
+						this->weight_five, this->weight_six, this->weight_seven,
+						this->weight_eight, this->weight_nine);
+					pixel5[2] = wavg_calc_asm(pixel1[2], pixel2[2], pixel3[2], pixel4[2], pixel5[2],
+						pixel6[2], pixel7[2], pixel8[2], pixel9[2], this->weight_one,
+						this->weight_two, this->weight_three, this->weight_four,
+						this->weight_five, this->weight_six, this->weight_seven,
+						this->weight_eight, this->weight_nine);
+				}
+			}
+			this->progressBar->Value = i;
+		}
+		// Odblokuj obiekt BitmapData po modyfikacji
+		bmpCopyProcessedIMG->UnlockBits(bmpData);
+		//Zapis wyniku i wyœwietlenie
+		this->pictureBox1->Image = bmpCopyProcessedIMG;
 	}
 	private: System::Void process_Click(System::Object^ sender, System::EventArgs^ e) {
 		if (this->bmpLoadedIMG == nullptr) {

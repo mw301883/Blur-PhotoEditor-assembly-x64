@@ -1,1 +1,3 @@
-﻿  AssemblyBlurLIB.vcxproj -> C:\Projekty\Photo-Editor-Blur\PhotoEditor-Blur-CPP-ASMx64\x64\Debug\AssemblyBlurLIB.dll
+﻿  Assembling asm_lib.asm...
+asm_lib.asm(25): error A2032: invalid use of register
+C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\BuildCustomizations\masm.targets(70,5): error MSB3721: Polecenie ml64.exe /c /nologo /Zi /Fo"x64\Debug\asm_lib.obj" /W3 /errorReport:prompt  /Taasm_lib.asm zostało zakończone; kod błędu: 1.

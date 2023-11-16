@@ -1,2 +1,2 @@
 LIBRARY AssemblyBlurLIB
-EXPORTS Calc
+EXPORTS wavg_calc_asm

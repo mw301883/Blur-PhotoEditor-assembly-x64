@@ -21,17 +21,29 @@
 	;w9 dd [rsp + 21]
 .code
 wavg_calc_asm proc
+    
 	;zapis parametrów v1, v2, v3, v4 do rejestru xmm0
-	movss xmm0, rcx
-	;movss xmm0, rdx
-	;movss xmm0, r8
-	;movss xmm0, r9
-	;zapis parametrów w1, w2, w3, w4 do rejestru xmm1
-	;movss xmm1, [rsp + 8]
-	;movss xmm1, [rsp + 8]
-	;movss xmm1, [rsp + 8]
-	;movss xmm1, [rsp + 8]
-	;mov rax, 12
+
+	movd xmm0, ecx ;przeniesnie parametru v1 (pierwszy argument) do xmm0
+	movd xmm1, edx ;przeniesnie parametru v2 (drugi argument) do xmm1
+	punpckldq xmm0, xmm1 ;po³¹czenie dolnych po³ówek rejestrów xmm0 i xmm1
+	pslldq xmm0, 8 ;przesuniêcie bitowe o wartoœæ 64 bitów (exc i edx)
+	movq xmm1, r8  ;wpis parametru v3 do rejestru xmm1
+	movq xmm2, r9  ;wpis parametru v4 do rejestru xmm1
+	punpckldq xmm1, xmm2 ;po³¹czenie dolnych po³ówek rejestrów xmm1 i xmm2
+	addsd xmm0, xmm1 ;po³¹czenie parametrów v1, v2, v3, v4 w jednym rejestrze xmm0
+
+	;zapis parametrów w1, w2, w3, w4 do rejestru xmm1 TODO
+
+	movd xmm0, ecx ;przeniesnie parametru v1 (pierwszy argument) do xmm0
+	movd xmm1, edx ;przeniesnie parametru v2 (drugi argument) do xmm1
+	punpckldq xmm0, xmm1 ;po³¹czenie dolnych po³ówek rejestrów xmm0 i xmm1
+	pslldq xmm0, 8 ;przesuniêcie bitowe o wartoœæ 64 bitów (exc i edx)
+	movq xmm1, r8  ;wpis parametru v3 do rejestru xmm1
+	movq xmm2, r9  ;wpis parametru v4 do rejestru xmm1
+	punpckldq xmm1, xmm2 ;po³¹czenie dolnych po³ówek rejestrów xmm1 i xmm2
+	addsd xmm0, xmm1 ;po³¹czenie parametrów v1, v2, v3, v4 w jednym rejestrze xmm0
+
 	ret
 wavg_calc_asm endp
 end

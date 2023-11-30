@@ -619,7 +619,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 					Byte* pixel8 = reinterpret_cast<Byte*>(avg_matrix[7].ToPointer());
 					Byte* pixel9 = reinterpret_cast<Byte*>(avg_matrix[8].ToPointer());
 
-					wavg_calc_asm(255, 254, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+					//wavg_calc_asm(1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
 					pixel5[0] = wavg_calc_asm(pixel1[0], pixel2[0], pixel3[0], pixel4[0], pixel5[0],
 						pixel6[0], pixel7[0], pixel8[0], pixel9[0], this->weight_one,
@@ -654,7 +654,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 		if (this->dll_lib_choice) {
 			std::chrono::steady_clock::time_point cpp_time_start = std::chrono::high_resolution_clock::now();
 			//TODO C++ dll
-			wavg_calc_asm(5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
+			//wavg_calc_asm(5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 			cpp_blur_algorithm();
 
 			std::chrono::steady_clock::time_point cpp_time_end = std::chrono::high_resolution_clock::now();

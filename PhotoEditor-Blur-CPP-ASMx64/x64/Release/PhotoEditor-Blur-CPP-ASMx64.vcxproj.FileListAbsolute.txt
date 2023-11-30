@@ -1,0 +1,4 @@
+C:\Projekty\Photo-Editor-Blur\PhotoEditor-Blur-CPP-ASMx64\x64\Release\PhotoEditor-Blur-CPP-ASMx64.vcxproj.AssemblyReference.cache
+C:\Projekty\Photo-Editor-Blur\PhotoEditor-Blur-CPP-ASMx64\x64\Release\PhotoEditorBlurCPPASMx64.userGUI.resources
+C:\Projekty\Photo-Editor-Blur\PhotoEditor-Blur-CPP-ASMx64\x64\Release\PhotoEditor-Blur-CPP-ASMx64.vcxproj.GenerateResource.cache
+C:\Projekty\Photo-Editor-Blur\PhotoEditor-Blur-CPP-ASMx64\x64\Release\PhotoEditor-Blur-CPP-ASMx64.exe

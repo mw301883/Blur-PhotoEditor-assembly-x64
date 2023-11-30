@@ -1,10 +1,3 @@
 ﻿  Assembling asm_lib.asm...
-  pch.cpp
-  AssemblyBlurLIB.cpp
-  dllmain.cpp
-     Trwa tworzenie biblioteki C:\Projekty\PhotoEditor-Blur-ASMx64-CPP\x64\Release\AssemblyBlurLIB.lib i obiektu C:\Projekty\PhotoEditor-Blur-ASMx64-CPP\x64\Release\AssemblyBlurLIB.exp
-  Trwa generowanie kodu
-  Previous IPDB not found, fall back to full compilation.
-  All 5 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
-  Zakończono generowanie kodu
-  AssemblyBlurLIB.vcxproj -> C:\Projekty\PhotoEditor-Blur-ASMx64-CPP\x64\Release\AssemblyBlurLIB.dll
+asm_lib.asm(66): error A2070: invalid instruction operands
+C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\BuildCustomizations\masm.targets(70,5): error MSB3721: Polecenie ml64.exe /c /nologo /Zi /Fo"x64\Release\asm_lib.obj" /W3 /errorReport:prompt  /Taasm_lib.asm zostało zakończone; kod błędu: 1.

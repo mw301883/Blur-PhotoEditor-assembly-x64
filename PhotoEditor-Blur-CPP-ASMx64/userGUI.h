@@ -4,6 +4,7 @@
 #include <string>
 #include <vcclr.h>
 #include <vector>
+#include <thread>
 #include "cpp_lib.h"
 #include "asm_lib.h"
 
@@ -27,7 +28,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 		Bitmap^ bmpLoadedIMG;
 
 		int blur_rate, weight_one, weight_two, weight_three, weight_four, weight_five, weight_six, weight_seven,
-			weight_eight, weight_nine;
+			weight_eight, weight_nine, threads;
 
 		bool dll_lib_choice;
 
@@ -255,6 +256,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->numericUpDown1->Name = L"numericUpDown1";
 			this->numericUpDown1->Size = System::Drawing::Size(120, 22);
 			this->numericUpDown1->TabIndex = 11;
+			this->numericUpDown1->ValueChanged += gcnew System::EventHandler(this, &userGUI::numericUpDown1_ValueChanged);
 			// 
 			// process
 			// 
@@ -517,7 +519,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 		labelCppTime->Text = "C++: ";
 		labelAssemblyTime->Text = "Assembly x64: ";
 	}
-	private: void cpp_blur_algorithm() {
+	private: inline void cpp_blur_algorithm() {
 		Bitmap^ bmpCopyProcessedIMG = dynamic_cast<Bitmap^>(this->bmpLoadedIMG->Clone());
 		// Uzyskaj dane obiektu BitmapData do modyfikacji pikseli
 		Rectangle rect = Rectangle(0, 0, bmpCopyProcessedIMG->Width, bmpCopyProcessedIMG->Height);
@@ -528,7 +530,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 		for (int i = 0; i < 9; ++i) {
 			avg_matrix->Add(ptr);
 		}
-
+		int tab_one[16]{}, tab_two[16]{}, tab_three[16]{}, weights[16]{};
 		for (int i = 0; i < this->blur_rate; ++i) {
 			for (int y = 1; y < bmpData->Height - 1; y++)
 			{
@@ -556,21 +558,49 @@ namespace PhotoEditorBlurCPPASMx64 {
 					Byte* pixel8 = reinterpret_cast<Byte*>(avg_matrix[7].ToPointer());
 					Byte* pixel9 = reinterpret_cast<Byte*>(avg_matrix[8].ToPointer());
 
-					pixel5[0] = wavg_calc_cpp(pixel1[0], pixel2[0], pixel3[0], pixel4[0], pixel5[0],
-						pixel6[0], pixel7[0], pixel8[0], pixel9[0], this->weight_one,
-						this->weight_two, this->weight_three, this->weight_four,
-						this->weight_five, this->weight_six, this->weight_seven,
-						this->weight_eight, this->weight_nine);
-					pixel5[1] = wavg_calc_cpp(pixel1[1], pixel2[1], pixel3[1], pixel4[1], pixel5[1],
-						pixel6[1], pixel7[1], pixel8[1], pixel9[1], this->weight_one,
-						this->weight_two, this->weight_three, this->weight_four,
-						this->weight_five, this->weight_six, this->weight_seven,
-						this->weight_eight, this->weight_nine);
-					pixel5[2] = wavg_calc_cpp(pixel1[2], pixel2[2], pixel3[2], pixel4[2], pixel5[2],
-						pixel6[2], pixel7[2], pixel8[2], pixel9[2], this->weight_one,
-						this->weight_two, this->weight_three, this->weight_four,
-						this->weight_five, this->weight_six, this->weight_seven,
-						this->weight_eight, this->weight_nine);
+					weights[0] = this->weight_one;
+					weights[1] = this->weight_two;
+					weights[2] = this->weight_three;
+					weights[3] = this->weight_four;
+					weights[4] = this->weight_five;
+					weights[5] = this->weight_six;
+					weights[6] = this->weight_seven;
+					weights[7] = this->weight_eight;
+					weights[8] = this->weight_nine;
+
+					tab_one[0] = pixel1[0];
+					tab_one[1] = pixel2[0];
+					tab_one[2] = pixel3[0];
+					tab_one[3] = pixel4[0];
+					tab_one[4] = pixel5[0];
+					tab_one[5] = pixel6[0];
+					tab_one[6] = pixel7[0];
+					tab_one[7] = pixel8[0];
+					tab_one[8] = pixel9[0];
+
+					tab_two[0] = pixel1[1];
+					tab_two[1] = pixel2[1];
+					tab_two[2] = pixel3[1];
+					tab_two[3] = pixel4[1];
+					tab_two[4] = pixel5[1];
+					tab_two[5] = pixel6[1];
+					tab_two[6] = pixel7[1];
+					tab_two[7] = pixel8[1];
+					tab_two[8] = pixel9[1];
+
+					tab_three[0] = pixel1[2];
+					tab_three[1] = pixel2[2];
+					tab_three[2] = pixel3[2];
+					tab_three[3] = pixel4[2];
+					tab_three[4] = pixel5[2];
+					tab_three[5] = pixel6[2];
+					tab_three[6] = pixel7[2];
+					tab_three[7] = pixel8[2];
+					tab_three[8] = pixel9[2];
+
+					pixel5[0] = wavg_calc_cpp(tab_one, weights);
+					pixel5[1] = wavg_calc_cpp(tab_two, weights);
+					pixel5[2] = wavg_calc_cpp(tab_three, weights);
 				}
 			}
 			this->progressBar->Value = i;
@@ -580,7 +610,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 		//Zapis wyniku i wyœwietlenie
 		this->pictureBox1->Image = bmpCopyProcessedIMG;
 	}
-	private: void assembly_blur_algorithm() {
+	private: inline void assembly_blur_algorithm() {
 		Bitmap^ bmpCopyProcessedIMG = dynamic_cast<Bitmap^>(this->bmpLoadedIMG->Clone());
 		// Uzyskaj dane obiektu BitmapData do modyfikacji pikseli
 		Rectangle rect = Rectangle(0, 0, bmpCopyProcessedIMG->Width, bmpCopyProcessedIMG->Height);
@@ -591,7 +621,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 		for (int i = 0; i < 9; ++i) {
 			avg_matrix->Add(ptr);
 		}
-
+		int tab_one[16]{}, tab_two[16]{}, tab_three[16]{}, weights[16]{};
 		for (int i = 0; i < this->blur_rate; ++i) {
 			for (int y = 1; y < bmpData->Height - 1; y++)
 			{
@@ -619,23 +649,58 @@ namespace PhotoEditorBlurCPPASMx64 {
 					Byte* pixel8 = reinterpret_cast<Byte*>(avg_matrix[7].ToPointer());
 					Byte* pixel9 = reinterpret_cast<Byte*>(avg_matrix[8].ToPointer());
 
-					//wavg_calc_asm(1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+					/*int vals[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+					int weigs[16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+					
+					int x1 = wavg_calc_cpp(vals, weigs);
+					int x2 = wavg_calc_asm(vals, weigs);
+					while (true);*/
 
-					pixel5[0] = wavg_calc_asm(pixel1[0], pixel2[0], pixel3[0], pixel4[0], pixel5[0],
-						pixel6[0], pixel7[0], pixel8[0], pixel9[0], this->weight_one,
-						this->weight_two, this->weight_three, this->weight_four,
-						this->weight_five, this->weight_six, this->weight_seven,
-						this->weight_eight, this->weight_nine);
-					pixel5[1] = wavg_calc_asm(pixel1[1], pixel2[1], pixel3[1], pixel4[1], pixel5[1],
-						pixel6[1], pixel7[1], pixel8[1], pixel9[1], this->weight_one,
-						this->weight_two, this->weight_three, this->weight_four,
-						this->weight_five, this->weight_six, this->weight_seven,
-						this->weight_eight, this->weight_nine);
-					pixel5[2] = wavg_calc_asm(pixel1[2], pixel2[2], pixel3[2], pixel4[2], pixel5[2],
-						pixel6[2], pixel7[2], pixel8[2], pixel9[2], this->weight_one,
-						this->weight_two, this->weight_three, this->weight_four,
-						this->weight_five, this->weight_six, this->weight_seven,
-						this->weight_eight, this->weight_nine);
+					//wavg_calc_asm(1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+					weights[0] = this->weight_one;
+					weights[1] = this->weight_two;
+					weights[2] = this->weight_three;
+					weights[3] = this->weight_four;
+					weights[4] = this->weight_five;
+					weights[5] = this->weight_six;
+					weights[6] = this->weight_seven;
+					weights[7] = this->weight_eight;
+					weights[8] = this->weight_nine;
+
+					tab_one[0] = pixel1[0];
+					tab_one[1] = pixel2[0];
+					tab_one[2] = pixel3[0];
+					tab_one[3] = pixel4[0];
+					tab_one[4] = pixel5[0];
+					tab_one[5] = pixel6[0];
+					tab_one[6] = pixel7[0];
+					tab_one[7] = pixel8[0];
+					tab_one[8] = pixel9[0];
+
+					tab_two[0] = pixel1[1];
+					tab_two[1] = pixel2[1];
+					tab_two[2] = pixel3[1];
+					tab_two[3] = pixel4[1];
+					tab_two[4] = pixel5[1];
+					tab_two[5] = pixel6[1];
+					tab_two[6] = pixel7[1];
+					tab_two[7] = pixel8[1];
+					tab_two[8] = pixel9[1];
+
+					tab_three[0] = pixel1[2];
+					tab_three[1] = pixel2[2];
+					tab_three[2] = pixel3[2];
+					tab_three[3] = pixel4[2];
+					tab_three[4] = pixel5[2];
+					tab_three[5] = pixel6[2];
+					tab_three[6] = pixel7[2];
+					tab_three[7] = pixel8[2];
+					tab_three[8] = pixel9[2];
+
+
+					pixel5[0] = wavg_calc_asm(tab_one, weights);
+					pixel5[1] = wavg_calc_asm(tab_two, weights);
+					pixel5[2] = wavg_calc_asm(tab_three, weights);
 				}
 			}
 			this->progressBar->Value = i;
@@ -738,6 +803,9 @@ namespace PhotoEditorBlurCPPASMx64 {
 	}
 	private: System::Void assemblyX64ToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 		this->dll_lib_choice = false;
+	}
+	private: System::Void numericUpDown1_ValueChanged(System::Object^ sender, System::EventArgs^ e) {
+		this->threads = Convert::ToInt32(numericUpDown1->Value);
 	}
 };
 }

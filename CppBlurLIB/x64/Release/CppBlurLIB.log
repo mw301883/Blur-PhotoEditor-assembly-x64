@@ -1,15 +1,12 @@
-﻿  pch.cpp
-  CppBlurLIB.cpp
-  cpp_lib.cpp
-  dllmain.cpp
+﻿  cpp_lib.cpp
 C:\Projekty\Photo-Editor-Blur\CppBlurLIB\cpp_lib.cpp(4,5): warning C4273: "wavg_calc_cpp": niespójne powiązanie biblioteki dll
   (kompilowanie pliku źródłowego „/cpp_lib.cpp”)
-  C:\Projekty\Photo-Editor-Blur\CppBlurLIB\cpp_lib.h(9,33):
+  C:\Projekty\Photo-Editor-Blur\CppBlurLIB\cpp_lib.h(13,33):
   zobacz poprzednią definicję „wavg_calc_cpp”
   
      Trwa tworzenie biblioteki C:\Projekty\Photo-Editor-Blur\PhotoEditor-Blur-CPP-ASMx64\x64\Release\CppBlurLIB.lib i obiektu C:\Projekty\Photo-Editor-Blur\PhotoEditor-Blur-CPP-ASMx64\x64\Release\CppBlurLIB.exp
   Trwa generowanie kodu
-  Previous IPDB not found, fall back to full compilation.
+  Previous IPDB and IOBJ mismatch, fall back to full compilation.
   All 6 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Zakończono generowanie kodu
   CppBlurLIB.vcxproj -> C:\Projekty\Photo-Editor-Blur\PhotoEditor-Blur-CPP-ASMx64\x64\Release\CppBlurLIB.dll

@@ -3,8 +3,9 @@
 #include <chrono>
 #include <string>
 #include <vcclr.h>
-#include <vector>
-#include <thread>
+//#include <vector>
+//#include <thread>
+//#include <Windows.h>
 #include "cpp_lib.h"
 #include "asm_lib.h"
 
@@ -60,6 +61,7 @@ namespace PhotoEditorBlurCPPASMx64 {
 			this->weight_eight = 1;
 			this->weight_nine = 1;
 			this->dll_lib_choice = true;
+			this->threads = 4;
 		}
 
 	protected:		~userGUI()
@@ -253,9 +255,11 @@ namespace PhotoEditorBlurCPPASMx64 {
 			// 
 			this->numericUpDown1->Location = System::Drawing::Point(599, 601);
 			this->numericUpDown1->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 64, 0, 0, 0 });
+			this->numericUpDown1->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
 			this->numericUpDown1->Name = L"numericUpDown1";
 			this->numericUpDown1->Size = System::Drawing::Size(120, 22);
 			this->numericUpDown1->TabIndex = 11;
+			this->numericUpDown1->Value = System::Decimal(gcnew cli::array< System::Int32 >(4) { 4, 0, 0, 0 });
 			this->numericUpDown1->ValueChanged += gcnew System::EventHandler(this, &userGUI::numericUpDown1_ValueChanged);
 			// 
 			// process
@@ -519,33 +523,75 @@ namespace PhotoEditorBlurCPPASMx64 {
 		labelCppTime->Text = "C++: ";
 		labelAssemblyTime->Text = "Assembly x64: ";
 	}
-	private: inline void cpp_blur_algorithm() {
+
+	private: inline void cpp_blur_algorithm()
+	{
 		Bitmap^ bmpCopyProcessedIMG = dynamic_cast<Bitmap^>(this->bmpLoadedIMG->Clone());
-		// Uzyskaj dane obiektu BitmapData do modyfikacji pikseli
+
 		Rectangle rect = Rectangle(0, 0, bmpCopyProcessedIMG->Width, bmpCopyProcessedIMG->Height);
 		System::Drawing::Imaging::BitmapData^ bmpData = bmpCopyProcessedIMG->LockBits(rect, System::Drawing::Imaging::ImageLockMode::ReadWrite, bmpCopyProcessedIMG->PixelFormat);
 
-		IntPtr ptr = IntPtr(bmpData->Scan0.ToPointer());
+		int fragmentHeight = bmpData->Height / this->threads; // Dziel obraz na fragmenty, gdzie numThreads to liczba w¹tków
+		array<System::Threading::Thread^>^ threads = gcnew array<System::Threading::Thread^>(this->threads);
+
+		for (int i = 0; i < this->threads; ++i)
+		{
+			int startY = i * fragmentHeight;
+			int endY = (i == this->threads - 1) ? bmpData->Height : (i + 1) * fragmentHeight;
+
+			threads[i] = gcnew System::Threading::Thread(gcnew System::Threading::ParameterizedThreadStart(this, &userGUI::BlurThread));
+			threads[i]->Start(gcnew BlurThreadParams(bmpData, startY, endY));
+		}
+
+		// Oczekuj na zakoñczenie wszystkich w¹tków
+		for (int i = 0; i < this->threads; ++i)
+		{
+			threads[i]->Join();
+		}
+
+		bmpCopyProcessedIMG->UnlockBits(bmpData);
+
+		// Zapisz wynik i wyœwietl
+		this->pictureBox1->Image = bmpCopyProcessedIMG;
+	}
+
+	ref class BlurThreadParams
+	{
+	public:
+		System::Drawing::Imaging::BitmapData^ bmpData;
+		int startY;
+		int endY;
+
+		BlurThreadParams(System::Drawing::Imaging::BitmapData^ bmpData, int startY, int endY)
+			: bmpData(bmpData), startY(startY), endY(endY)
+		{}
+	};
+
+	void BlurThread(Object^ paramsObj)
+	{
+		BlurThreadParams^ blurParams = dynamic_cast<BlurThreadParams^>(paramsObj);
+
+		IntPtr ptr = IntPtr(blurParams->bmpData->Scan0.ToPointer());
+
 		List<IntPtr>^ avg_matrix = gcnew List<IntPtr>(9);
 		for (int i = 0; i < 9; ++i) {
 			avg_matrix->Add(ptr);
 		}
 		int tab_one[16]{}, tab_two[16]{}, tab_three[16]{}, weights[16]{};
-		for (int i = 0; i < this->blur_rate; ++i) {
-			for (int y = 1; y < bmpData->Height - 1; y++)
-			{
-				for (int x = 1; x < bmpData->Width - 1; x++)
+		for (int i = blurParams->startY + 1; i < blurParams->endY - 1; i++){
+			for (int y = 1; y < blurParams->bmpData->Height - 1; y++){
+				for (int x = 1; x < blurParams->bmpData->Width - 1; x++)
 				{
 					//Wype³nienie macierzy pikseli do obliczenia œredniej
-					avg_matrix[0] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + (x - 1) * 3);
-					avg_matrix[1] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + x * 3);
-					avg_matrix[2] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + (x + 1) * 3);
-					avg_matrix[3] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + (x - 1) * 3);
-					avg_matrix[4] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + x * 3);// Center
-					avg_matrix[5] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + (x + 1) * 3);
-					avg_matrix[6] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + (x - 1) * 3);
-					avg_matrix[7] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + x * 3);
-					avg_matrix[8] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + (x + 1) * 3);
+					avg_matrix[0] = IntPtr(ptr.ToInt64() + (y - 1) * blurParams->bmpData->Stride + (x - 1) * 3);
+					avg_matrix[1] = IntPtr(ptr.ToInt64() + (y - 1) * blurParams->bmpData->Stride + x * 3);
+					avg_matrix[2] = IntPtr(ptr.ToInt64() + (y - 1) * blurParams->bmpData->Stride + (x + 1) * 3);
+					avg_matrix[3] = IntPtr(ptr.ToInt64() + y * blurParams->bmpData->Stride + (x - 1) * 3);
+					avg_matrix[4] = IntPtr(ptr.ToInt64() + y * blurParams->bmpData->Stride + x * 3);// Center
+					avg_matrix[5] = IntPtr(ptr.ToInt64() + y * blurParams->bmpData->Stride + (x + 1) * 3);
+					avg_matrix[6] = IntPtr(ptr.ToInt64() + (y + 1) * blurParams->bmpData->Stride + (x - 1) * 3);
+					avg_matrix[7] = IntPtr(ptr.ToInt64() + (y + 1) * blurParams->bmpData->Stride + x * 3);
+					avg_matrix[8] = IntPtr(ptr.ToInt64() + (y + 1) * blurParams->bmpData->Stride + (x + 1) * 3);
 
 					// Modyfikacja wartoœci piksela
 					Byte* pixel1 = reinterpret_cast<Byte*>(avg_matrix[0].ToPointer());
@@ -603,13 +649,102 @@ namespace PhotoEditorBlurCPPASMx64 {
 					pixel5[2] = wavg_calc_cpp(tab_three, weights);
 				}
 			}
-			this->progressBar->Value = i;
+			//this->progressBar->Value = i;
 		}
-		// Odblokuj obiekt BitmapData po modyfikacji
-		bmpCopyProcessedIMG->UnlockBits(bmpData);
-		//Zapis wyniku i wyœwietlenie
-		this->pictureBox1->Image = bmpCopyProcessedIMG;
 	}
+
+
+	//private: inline void cpp_blur_algorithm() {
+	//	Bitmap^ bmpCopyProcessedIMG = dynamic_cast<Bitmap^>(this->bmpLoadedIMG->Clone());
+	//	// Uzyskaj dane obiektu BitmapData do modyfikacji pikseli
+	//	Rectangle rect = Rectangle(0, 0, bmpCopyProcessedIMG->Width, bmpCopyProcessedIMG->Height);
+	//	System::Drawing::Imaging::BitmapData^ bmpData = bmpCopyProcessedIMG->LockBits(rect, System::Drawing::Imaging::ImageLockMode::ReadWrite, bmpCopyProcessedIMG->PixelFormat);
+
+	//	IntPtr ptr = IntPtr(bmpData->Scan0.ToPointer());
+	//	List<IntPtr>^ avg_matrix = gcnew List<IntPtr>(9);
+	//	for (int i = 0; i < 9; ++i) {
+	//		avg_matrix->Add(ptr);
+	//	}
+	//	int tab_one[16]{}, tab_two[16]{}, tab_three[16]{}, weights[16]{};
+	//	for (int i = 0; i < this->blur_rate; ++i) {
+	//		for (int y = 1; y < bmpData->Height - 1; y++)
+	//		{
+	//			for (int x = 1; x < bmpData->Width - 1; x++)
+	//			{
+	//				//Wype³nienie macierzy pikseli do obliczenia œredniej
+	//				avg_matrix[0] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + (x - 1) * 3);
+	//				avg_matrix[1] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + x * 3);
+	//				avg_matrix[2] = IntPtr(ptr.ToInt64() + (y - 1) * bmpData->Stride + (x + 1) * 3);
+	//				avg_matrix[3] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + (x - 1) * 3);
+	//				avg_matrix[4] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + x * 3);// Center
+	//				avg_matrix[5] = IntPtr(ptr.ToInt64() + y * bmpData->Stride + (x + 1) * 3);
+	//				avg_matrix[6] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + (x - 1) * 3);
+	//				avg_matrix[7] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + x * 3);
+	//				avg_matrix[8] = IntPtr(ptr.ToInt64() + (y + 1) * bmpData->Stride + (x + 1) * 3);
+
+	//				// Modyfikacja wartoœci piksela
+	//				Byte* pixel1 = reinterpret_cast<Byte*>(avg_matrix[0].ToPointer());
+	//				Byte* pixel2 = reinterpret_cast<Byte*>(avg_matrix[1].ToPointer());
+	//				Byte* pixel3 = reinterpret_cast<Byte*>(avg_matrix[2].ToPointer());
+	//				Byte* pixel4 = reinterpret_cast<Byte*>(avg_matrix[3].ToPointer());
+	//				Byte* pixel5 = reinterpret_cast<Byte*>(avg_matrix[4].ToPointer());//Center
+	//				Byte* pixel6 = reinterpret_cast<Byte*>(avg_matrix[5].ToPointer());
+	//				Byte* pixel7 = reinterpret_cast<Byte*>(avg_matrix[6].ToPointer());
+	//				Byte* pixel8 = reinterpret_cast<Byte*>(avg_matrix[7].ToPointer());
+	//				Byte* pixel9 = reinterpret_cast<Byte*>(avg_matrix[8].ToPointer());
+
+	//				weights[0] = this->weight_one;
+	//				weights[1] = this->weight_two;
+	//				weights[2] = this->weight_three;
+	//				weights[3] = this->weight_four;
+	//				weights[4] = this->weight_five;
+	//				weights[5] = this->weight_six;
+	//				weights[6] = this->weight_seven;
+	//				weights[7] = this->weight_eight;
+	//				weights[8] = this->weight_nine;
+
+	//				tab_one[0] = pixel1[0];
+	//				tab_one[1] = pixel2[0];
+	//				tab_one[2] = pixel3[0];
+	//				tab_one[3] = pixel4[0];
+	//				tab_one[4] = pixel5[0];
+	//				tab_one[5] = pixel6[0];
+	//				tab_one[6] = pixel7[0];
+	//				tab_one[7] = pixel8[0];
+	//				tab_one[8] = pixel9[0];
+
+	//				tab_two[0] = pixel1[1];
+	//				tab_two[1] = pixel2[1];
+	//				tab_two[2] = pixel3[1];
+	//				tab_two[3] = pixel4[1];
+	//				tab_two[4] = pixel5[1];
+	//				tab_two[5] = pixel6[1];
+	//				tab_two[6] = pixel7[1];
+	//				tab_two[7] = pixel8[1];
+	//				tab_two[8] = pixel9[1];
+
+	//				tab_three[0] = pixel1[2];
+	//				tab_three[1] = pixel2[2];
+	//				tab_three[2] = pixel3[2];
+	//				tab_three[3] = pixel4[2];
+	//				tab_three[4] = pixel5[2];
+	//				tab_three[5] = pixel6[2];
+	//				tab_three[6] = pixel7[2];
+	//				tab_three[7] = pixel8[2];
+	//				tab_three[8] = pixel9[2];
+
+	//				pixel5[0] = wavg_calc_cpp(tab_one, weights);
+	//				pixel5[1] = wavg_calc_cpp(tab_two, weights);
+	//				pixel5[2] = wavg_calc_cpp(tab_three, weights);
+	//			}
+	//		}
+	//		this->progressBar->Value = i;
+	//	}
+	//	// Odblokuj obiekt BitmapData po modyfikacji
+	//	bmpCopyProcessedIMG->UnlockBits(bmpData);
+	//	//Zapis wyniku i wyœwietlenie
+	//	this->pictureBox1->Image = bmpCopyProcessedIMG;
+	//}
 	private: inline void assembly_blur_algorithm() {
 		Bitmap^ bmpCopyProcessedIMG = dynamic_cast<Bitmap^>(this->bmpLoadedIMG->Clone());
 		// Uzyskaj dane obiektu BitmapData do modyfikacji pikseli

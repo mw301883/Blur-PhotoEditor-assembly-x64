@@ -6,8 +6,4 @@
 #define CPP_BLUR_LIB_API __declspec(dllimport)
 #endif
 
-//extern "C" CPP_BLUR_LIB_API int wavg_calc_cpp(int v1, int v2, int v3, int v4, int v5,
-//	int v6, int v7, int v8, int v9, int w1, int w2, int w3, int w4, int w5, int w6,
-//	int w7, int w8, int w9);
-
 extern "C" CPP_BLUR_LIB_API int wavg_calc_cpp(int values[16], int weigths[16]);
